@@ -1,0 +1,22 @@
+{
+  "name": "email-service",
+  "version": "1.0.0",
+  "description": "邮件发送服务 - 学习 Nodemailer 和邮件技术",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node src/index.js --test"
+  },
+  "keywords": [
+    "nodejs",
+    "nodemailer",
+    "email",
+    "smtp",
+    "mail-service"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
+

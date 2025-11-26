@@ -1,0 +1,21 @@
+{
+  "name": "log-analyzer",
+  "version": "1.0.0",
+  "description": "日志分析工具 - 学习 Stream 处理和数据分析",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "log-analyzer",
+    "stream",
+    "data-analysis",
+    "regex"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
+

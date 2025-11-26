@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时聊天室</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 600px;
+            height: 80vh;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .input-area {
+            display: flex;
+            padding: 20px;
+            background: white;
+            border-radius: 0 0 10px 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>💬 实时聊天室</h1>
+            <p>在线用户: <span id="userCount">0</span></p>
+        </div>
+        <div class="messages" id="messages">
+            <!-- 消息将在这里显示 -->
+            <div class="message">
+                <strong>系统:</strong> 欢迎来到聊天室！
+            </div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="输入消息..." />
+            <button id="sendBtn">发送</button>
+        </div>
+    </div>
+
+    <!-- TODO: 引入 Socket.io 客户端库 -->
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    
+    <script>
+        // TODO: 实现客户端 Socket.io 连接
+        // const socket = io();
+
+        // TODO: 监听服务器消息
+        // socket.on('message', (data) => {
+        //     // 显示消息
+        // });
+
+        // TODO: 发送消息
+        // document.getElementById('sendBtn').addEventListener('click', () => {
+        //     const message = document.getElementById('messageInput').value;
+        //     if (message) {
+        //         socket.emit('message', message);
+        //         document.getElementById('messageInput').value = '';
+        //     }
+        // });
+
+        console.log('聊天室客户端');
+        console.log('TODO: 实现 Socket.io 客户端连接');
+    </script>
+</body>
+</html>
+

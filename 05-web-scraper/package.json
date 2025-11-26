@@ -1,0 +1,21 @@
+{
+  "name": "web-scraper",
+  "version": "1.0.0",
+  "description": "网页爬虫工具 - 学习 HTTP 请求和 HTML 解析",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "web-scraper",
+    "crawler",
+    "cheerio",
+    "axios"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
+

@@ -1,0 +1,20 @@
+{
+  "name": "simple-rest-api",
+  "version": "1.0.0",
+  "description": "简单的 RESTful API 服务器 - 学习 Express 框架",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "rest-api",
+    "backend"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
+

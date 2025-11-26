@@ -1,0 +1,21 @@
+{
+  "name": "url-shortener",
+  "version": "1.0.0",
+  "description": "URL 短链接服务 - 学习数据库设计和哈希算法",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "url-shortener",
+    "short-link",
+    "redis",
+    "database"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
+

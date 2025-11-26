@@ -1,0 +1,20 @@
+{
+  "name": "file-manager-cli",
+  "version": "1.0.0",
+  "description": "命令行文件管理工具 - 学习 Node.js 文件系统操作",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "file-system",
+    "cli",
+    "file-manager"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
+

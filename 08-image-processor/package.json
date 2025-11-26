@@ -1,0 +1,22 @@
+{
+  "name": "image-processor",
+  "version": "1.0.0",
+  "description": "图片处理服务 - 学习文件上传和 Stream 处理",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "image-processing",
+    "sharp",
+    "multer",
+    "file-upload",
+    "stream"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
+

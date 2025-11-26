@@ -1,0 +1,24 @@
+{
+  "name": "microservices-demo",
+  "version": "1.0.0",
+  "description": "微服务通信演示 - 学习微服务架构和进程间通信",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "service-a": "node services/service-a/index.js",
+    "service-b": "node services/service-b/index.js",
+    "dev-a": "node --watch services/service-a/index.js",
+    "dev-b": "node --watch services/service-b/index.js"
+  },
+  "keywords": [
+    "nodejs",
+    "microservices",
+    "distributed-systems",
+    "service-communication",
+    "api-gateway"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
+
