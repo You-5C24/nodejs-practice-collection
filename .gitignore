@@ -27,6 +27,7 @@ coverage/
 *.swp
 *.swo
 *~
+*-lock.yaml
 
 # 临时文件
 *.tmp

@@ -31,10 +31,10 @@
 
 ```bash
 # 安装依赖
-npm install
+pnpm install
 
 # 运行程序
-npm start
+pnpm start
 
 # 或直接运行
 node src/index.js
