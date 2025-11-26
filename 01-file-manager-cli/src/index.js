@@ -8,12 +8,62 @@
  * - 异步操作（Promise、async/await）
  */
 
-const path = require("path");
 const { searchFiles } = require("./search");
-const { formatSearchResults } = require("./utils");
+const { renameFiles } = require("./rename");
+const { formatSearchResults, formatRenameResults } = require("./utils");
 
 console.log("文件管理工具");
 console.log("=".repeat(50));
+
+/**
+ * 搜索命令参数解析器
+ * @param {Array} args - 命令行参数数组
+ * @returns {object} - 解析后的参数对象
+ */
+function parseSearchArgs(args) {
+  return {
+    command: "search",
+    directory: args[1],
+    searchTerm: args[2],
+    options: {
+      extension: args[3] || undefined,
+      caseSensitive: false,
+      recursive: true,
+    },
+  };
+}
+
+/**
+ * 重命名命令参数解析器
+ * @param {Array} args - 命令行参数数组
+ * @returns {object} - 解析后的参数对象
+ */
+function parseRenameArgs(args) {
+  return {
+    command: "rename",
+    directory: args[1],
+    mode: args[2],
+    options: {
+      prefix: args[3] || "",
+      suffix: args[3] || "",
+      oldText: args[3] || "",
+      newText: args[4] || "",
+      startNumber: parseInt(args[3]) || 1,
+      extension: args.find((arg) => arg.startsWith(".")) || null,
+      dryRun: args.includes("--dry-run"),
+      ignoreHidden: true,
+    },
+  };
+}
+
+/**
+ * 命令参数解析器映射
+ * 将命令名称映射到对应的参数解析函数
+ */
+const commandParsers = {
+  search: parseSearchArgs,
+  rename: parseRenameArgs,
+};
 
 /**
  * 解析命令行参数
@@ -21,22 +71,13 @@ console.log("=".repeat(50));
  */
 function parseArguments() {
   const args = process.argv.slice(2);
+  const command = args[0];
 
-  const command = args[0] || "search";
-  const directory = args[1] || "./";
-  const searchTerm = args[2] || "";
-  const extension = args[3] || undefined;
+  // 获取对应的参数解析器
+  const parser = commandParsers[command];
 
-  return {
-    command,
-    directory,
-    searchTerm,
-    options: {
-      extension,
-      caseSensitive: false,
-      recursive: true,
-    },
-  };
+  // 如果找到解析器，执行解析；否则返回 null 命令
+  return parser ? parser(args) : { command: null };
 }
 
 /**
@@ -45,55 +86,99 @@ function parseArguments() {
 function showHelp() {
   console.log("\n使用方法：");
   console.log("  node src/index.js search [目录] [关键词] [扩展名]");
-  console.log("\n参数说明：");
+  console.log("  node src/index.js rename [目录] [模式] [参数] [--dry-run]");
+  console.log("\n搜索参数说明：");
   console.log("  目录      - 要搜索的目录路径（默认：当前目录）");
   console.log("  关键词    - 文件名包含的关键词（可选）");
   console.log("  扩展名    - 文件扩展名过滤，如 .js .txt（可选）");
-  console.log("\n示例：");
+  console.log("\n重命名参数说明：");
+  console.log("  目录      - 要处理的目录路径");
+  console.log("  模式      - prefix | suffix | replace | number");
+  console.log("  参数      - 根据模式不同：");
+  console.log("              prefix:  前缀文本");
+  console.log("              suffix:  后缀文本");
+  console.log("              replace: 旧文本 新文本");
+  console.log("              number:  起始数字");
+  console.log("  --dry-run - 预览模式，不实际修改文件");
+  console.log("\n搜索示例：");
   console.log("  node src/index.js search ./ index");
   console.log("  node src/index.js search ./src .js");
-  console.log("  node src/index.js search ./test test .txt");
+  console.log("\n重命名示例：");
+  console.log("  node src/index.js rename ./test prefix test_");
+  console.log("  node src/index.js rename ./test suffix _backup");
+  console.log("  node src/index.js rename ./test replace old new");
+  console.log("  node src/index.js rename ./test number 1 --dry-run");
   console.log("");
 }
 
 /**
- * 主入口函数
+ * 搜索命令处理器
+ * @param {object} parsedArgs - 解析后的参数对象
  */
-async function main() {
-  // 解析命令行参数
-  const { command, directory, searchTerm, options } = parseArguments();
+async function handleSearchCommand(parsedArgs) {
+  const { directory, searchTerm, options } = parsedArgs;
 
-  // 检查命令
-  if (command !== "search") {
-    showHelp();
-    return;
-  }
-
-  // 输出搜索开始提示
   console.log(`\n🔍 开始搜索...`);
   console.log(`   目录: ${directory}`);
   if (searchTerm) console.log(`   关键词: ${searchTerm}`);
   if (options.extension) console.log(`   扩展名: ${options.extension}`);
 
-  // 记录开始时间
   const startTime = Date.now();
-
-  try {
-    // 执行搜索
-    const results = await searchFiles(directory, searchTerm, options);
-
-    // 计算搜索耗时
-    const searchTime = Date.now() - startTime;
-
-    // 输出结果
-    formatSearchResults(results, searchTime);
-  } catch (error) {
-    console.error("❌ 搜索过程中出错:", error.message);
-  }
+  const results = await searchFiles(directory, searchTerm, options);
+  const searchTime = Date.now() - startTime;
+  formatSearchResults(results, searchTime);
 }
 
-// TODO: 实现批量重命名功能
-// 功能：批量为文件添加前缀、后缀或替换名称
+/**
+ * 重命名命令处理器
+ * @param {object} parsedArgs - 解析后的参数对象
+ */
+async function handleRenameCommand(parsedArgs) {
+  const { directory, mode, options } = parsedArgs;
+
+  console.log(`\n✏️  开始批量重命名...`);
+  console.log(`   目录: ${directory}`);
+  console.log(`   模式: ${mode}`);
+  if (options.dryRun) {
+    console.log(`   模式: 预览模式（不会实际修改）`);
+  }
+
+  const results = await renameFiles(directory, mode, options);
+  formatRenameResults(results, options.dryRun);
+}
+
+/**
+ * 命令映射对象
+ * 将命令名称映射到对应的处理函数
+ */
+const commandHandlers = {
+  search: handleSearchCommand,
+  rename: handleRenameCommand,
+};
+
+/**
+ * 主入口函数
+ */
+async function main() {
+  const parsedArgs = parseArguments();
+  const { command } = parsedArgs;
+
+  // 获取命令处理器
+  const handler = commandHandlers[command];
+
+  // 如果命令不存在，显示帮助信息
+  if (!handler) {
+    showHelp();
+    return;
+  }
+
+  // 执行命令处理器
+  try {
+    await handler(parsedArgs);
+  } catch (error) {
+    console.error(`❌ ${command} 过程中出错:`, error.message);
+  }
+}
 
 // TODO: 实现文件统计功能
 // 功能：统计目录中的文件数量、类型、大小等信息

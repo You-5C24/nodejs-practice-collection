@@ -44,8 +44,8 @@ async function searchFiles(directory, searchTerm = "", options = {}) {
         continue;
       }
 
-      // 如果是目录
       if (entry.isDirectory()) {
+        // 如果是目录
         // 检查是否在忽略列表中
         if (ignoreDirs.includes(entryName)) {
           continue;
@@ -56,9 +56,8 @@ async function searchFiles(directory, searchTerm = "", options = {}) {
           const subResults = await searchFiles(entryPath, searchTerm, options);
           results.push(...subResults);
         }
-      }
-      // 如果是文件
-      else if (entry.isFile()) {
+      } else if (entry.isFile()) {
+        // 如果是文件
         // 检查文件是否匹配搜索条件
         if (matchFile(entryName, searchTerm, { extension, caseSensitive })) {
           // 获取文件详细信息
@@ -121,4 +120,3 @@ function matchFile(filename, searchTerm, options) {
 module.exports = {
   searchFiles,
 };
-

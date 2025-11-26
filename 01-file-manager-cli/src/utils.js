@@ -51,7 +51,59 @@ function formatSearchResults(results, searchTime) {
   console.log("=".repeat(50));
 }
 
+/**
+ * 格式化并输出重命名结果
+ * @param {object} results - 重命名结果对象
+ * @param {boolean} isDryRun - 是否为预览模式
+ */
+function formatRenameResults(results, isDryRun = false) {
+  console.log("\n" + "=".repeat(50));
+
+  const total =
+    results.success.length + results.failed.length + results.skipped.length;
+
+  if (isDryRun) {
+    console.log("🔍 预览模式 - 不会实际修改文件\n");
+  }
+
+  if (results.success.length > 0) {
+    console.log(
+      `✅ ${isDryRun ? "将会重命名" : "成功重命名"} ${
+        results.success.length
+      } 个文件：\n`
+    );
+    results.success.forEach((item, index) => {
+      console.log(`${index + 1}. ${item.original} → ${item.new}`);
+    });
+    console.log("");
+  }
+
+  if (results.failed.length > 0) {
+    console.log(`❌ 失败 ${results.failed.length} 个文件：\n`);
+    results.failed.forEach((item, index) => {
+      console.log(`${index + 1}. ${item.original} → ${item.new}`);
+      console.log(`   原因: ${item.error}`);
+    });
+    console.log("");
+  }
+
+  if (results.skipped.length > 0) {
+    console.log(`⏭️  跳过 ${results.skipped.length} 个文件：\n`);
+    results.skipped.forEach((item, index) => {
+      console.log(`${index + 1}. ${item.original} (${item.reason})`);
+    });
+    console.log("");
+  }
+
+  if (total === 0) {
+    console.log("❌ 未找到可重命名的文件");
+  }
+
+  console.log("=".repeat(50));
+}
+
 module.exports = {
   formatFileSize,
   formatSearchResults,
+  formatRenameResults,
 };
