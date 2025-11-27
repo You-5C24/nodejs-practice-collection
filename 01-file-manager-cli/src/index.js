@@ -12,11 +12,7 @@ const inquirer = require("inquirer");
 const { searchFiles } = require("./search");
 const { renameFiles } = require("./rename");
 const { formatSearchResults, formatRenameResults } = require("./utils");
-const {
-  promptMainMenu,
-  promptSearchParams,
-  promptRenameParams,
-} = require("./prompts");
+const { promptMainMenu, promptHandlers } = require("./prompts");
 
 /**
  * 搜索命令处理器
@@ -61,15 +57,6 @@ async function handleRenameCommand(parsedArgs) {
 const commandHandlers = {
   search: handleSearchCommand,
   rename: handleRenameCommand,
-};
-
-/**
- * 提示函数映射对象
- * 将命令名称映射到对应的参数提示函数
- */
-const promptHandlers = {
-  search: promptSearchParams,
-  rename: promptRenameParams,
 };
 
 /**

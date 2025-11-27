@@ -203,8 +203,16 @@ async function promptRenameParams() {
   };
 }
 
+/**
+ * 提示函数映射对象
+ * 将命令名称映射到对应的参数提示函数
+ */
+const promptHandlers = {
+  search: promptSearchParams,
+  rename: promptRenameParams,
+};
+
 module.exports = {
   promptMainMenu,
-  promptSearchParams,
-  promptRenameParams,
+  promptHandlers,
 };
