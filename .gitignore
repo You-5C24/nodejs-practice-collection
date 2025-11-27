@@ -29,6 +29,8 @@ coverage/
 *~
 *-lock.yaml
 
+.pnpm-store
+
 # 临时文件
 *.tmp
 .cache/

@@ -35,75 +35,65 @@ async function renameFiles(directory, mode, options = {}) {
 
     for (const entry of entries) {
       const entryName = entry.name;
-      console.log(entry.isFile(), extension);
 
-      if (ignoreHidden && entryName.startsWith(".")) {
+      // 检查文件是否应该被跳过
+      const skipCheck = shouldSkipFile(entry, { ignoreHidden, extension });
+      if (skipCheck.skip) {
         results.skipped.push({
           original: entryName,
-          reason: "隐藏文件",
+          reason: skipCheck.reason,
         });
         continue;
       }
 
-      if (!entry.isFile()) {
+      // 准备重命名操作
+      const prepareResult = await prepareRenameOperation(
+        entryName,
+        absolutePath,
+        mode,
+        { prefix, suffix, oldText, newText, counter }
+      );
+
+      // 如果准备失败且有skipReason，添加到skipped
+      if (!prepareResult.success && prepareResult.skipReason) {
+        results.skipped.push({
+          original: entryName,
+          reason: prepareResult.skipReason,
+        });
         continue;
       }
 
-      if (extension) {
-        const fileExt = path.extname(entryName);
-        if (fileExt !== extension) {
-          continue;
-        }
+      // 如果准备失败且有error，添加到failed
+      if (!prepareResult.success && prepareResult.error) {
+        results.failed.push({
+          original: prepareResult.original || entryName,
+          new: prepareResult.newName || "N/A",
+          error: prepareResult.error,
+        });
+        continue;
       }
 
-      const oldPath = path.join(absolutePath, entryName);
-      let newName;
-
+      // 执行重命名
       try {
-        newName = generateNewName(entryName, mode, {
-          prefix,
-          suffix,
-          oldText,
-          newText,
-          counter,
-        });
-
-        if (newName === entryName) {
-          results.skipped.push({
-            original: entryName,
-            reason: "名称未改变",
-          });
-          continue;
-        }
-
-        const newPath = path.join(absolutePath, newName);
-
-        const newPathExists = await checkFileExists(newPath);
-        if (newPathExists) {
-          results.failed.push({
-            original: entryName,
-            new: newName,
-            error: "目标文件已存在",
-          });
-          continue;
-        }
-
-        if (!dryRun) {
-          await fs.rename(oldPath, newPath);
-        }
+        await executeRename(
+          prepareResult.oldPath,
+          prepareResult.newPath,
+          dryRun
+        );
 
         results.success.push({
           original: entryName,
-          new: newName,
+          new: prepareResult.newName,
         });
 
+        // 如果是number模式，增加计数器
         if (mode === "number") {
           counter++;
         }
       } catch (error) {
         results.failed.push({
           original: entryName,
-          new: newName || "N/A",
+          new: prepareResult.newName,
           error: error.message,
         });
       }
@@ -113,6 +103,92 @@ async function renameFiles(directory, mode, options = {}) {
   }
 
   return results;
+}
+
+/**
+ * 检查文件是否应该被跳过
+ * @param {object} entry - 文件目录项（fs.Dirent对象）
+ * @param {object} options - 配置选项
+ * @param {boolean} options.ignoreHidden - 是否忽略隐藏文件
+ * @param {string|null} options.extension - 指定的文件扩展名
+ * @returns {object} - { skip: boolean, reason?: string }
+ */
+function shouldSkipFile(entry, options) {
+  const { ignoreHidden, extension } = options;
+  const entryName = entry.name;
+
+  // 检查隐藏文件
+  if (ignoreHidden && entryName.startsWith(".")) {
+    return { skip: true, reason: "隐藏文件" };
+  }
+
+  // 检查是否为文件
+  if (!entry.isFile()) {
+    return { skip: true, reason: "非文件" };
+  }
+
+  // 检查扩展名
+  if (extension) {
+    const fileExt = path.extname(entryName);
+    if (fileExt !== extension) {
+      return { skip: true, reason: "扩展名不匹配" };
+    }
+  }
+
+  return { skip: false };
+}
+
+/**
+ * 准备重命名操作（生成新名称、检查冲突）
+ * @param {string} entryName - 原文件名
+ * @param {string} absolutePath - 目录的绝对路径
+ * @param {string} mode - 重命名模式
+ * @param {object} params - 重命名参数（prefix, suffix, oldText, newText, counter）
+ * @returns {Promise<object>} - { success: boolean, oldPath?, newPath?, newName?, skipReason?, error? }
+ */
+async function prepareRenameOperation(entryName, absolutePath, mode, params) {
+  const oldPath = path.join(absolutePath, entryName);
+
+  try {
+    // 生成新文件名
+    const newName = generateNewName(entryName, mode, params);
+
+    // 检查名称是否改变
+    if (newName === entryName) {
+      return { success: false, skipReason: "名称未改变" };
+    }
+
+    // 构建新路径
+    const newPath = path.join(absolutePath, newName);
+
+    // 检查文件是否存在
+    const newPathExists = await checkFileExists(newPath);
+    if (newPathExists) {
+      return {
+        success: false,
+        original: entryName,
+        newName,
+        error: "目标文件已存在",
+      };
+    }
+
+    return { success: true, oldPath, newPath, newName };
+  } catch (error) {
+    return { success: false, original: entryName, error: error.message };
+  }
+}
+
+/**
+ * 执行文件重命名操作
+ * @param {string} oldPath - 原文件路径
+ * @param {string} newPath - 新文件路径
+ * @param {boolean} dryRun - 是否为演习模式
+ * @returns {Promise<void>}
+ */
+async function executeRename(oldPath, newPath, dryRun) {
+  if (!dryRun) {
+    await fs.rename(oldPath, newPath);
+  }
 }
 
 /**
@@ -126,7 +202,6 @@ function generateNewName(filename, mode, params) {
   const { prefix, suffix, oldText, newText, counter } = params;
   const ext = path.extname(filename);
   const nameWithoutExt = path.basename(filename, ext);
-  console.log(filename);
 
   switch (mode) {
     case "prefix":

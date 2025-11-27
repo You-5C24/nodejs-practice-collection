@@ -1,115 +1,22 @@
 /**
- * 文件管理工具 - 主入口文件
+ * 文件管理工具 - 主入口文件（交互式界面）
  *
  * 学习目标：
  * - fs 模块的使用（文件读取、写入、删除等）
  * - path 模块的路径处理
- * - 命令行参数解析
+ * - inquirer 交互式命令行界面
  * - 异步操作（Promise、async/await）
  */
 
+const inquirer = require("inquirer");
 const { searchFiles } = require("./search");
 const { renameFiles } = require("./rename");
 const { formatSearchResults, formatRenameResults } = require("./utils");
-
-console.log("文件管理工具");
-console.log("=".repeat(50));
-
-/**
- * 搜索命令参数解析器
- * @param {Array} args - 命令行参数数组
- * @returns {object} - 解析后的参数对象
- */
-function parseSearchArgs(args) {
-  return {
-    command: "search",
-    directory: args[1],
-    searchTerm: args[2],
-    options: {
-      extension: args[3] || undefined,
-      caseSensitive: false,
-      recursive: true,
-    },
-  };
-}
-
-/**
- * 重命名命令参数解析器
- * @param {Array} args - 命令行参数数组
- * @returns {object} - 解析后的参数对象
- */
-function parseRenameArgs(args) {
-  return {
-    command: "rename",
-    directory: args[1],
-    mode: args[2],
-    options: {
-      prefix: args[3] || "",
-      suffix: args[3] || "",
-      oldText: args[3] || "",
-      newText: args[4] || "",
-      startNumber: parseInt(args[3]) || 1,
-      extension: args.find((arg) => arg.startsWith(".")) || null,
-      dryRun: args.includes("--dry-run"),
-      ignoreHidden: true,
-    },
-  };
-}
-
-/**
- * 命令参数解析器映射
- * 将命令名称映射到对应的参数解析函数
- */
-const commandParsers = {
-  search: parseSearchArgs,
-  rename: parseRenameArgs,
-};
-
-/**
- * 解析命令行参数
- * @returns {object} - 解析后的参数对象
- */
-function parseArguments() {
-  const args = process.argv.slice(2);
-  const command = args[0];
-
-  // 获取对应的参数解析器
-  const parser = commandParsers[command];
-
-  // 如果找到解析器，执行解析；否则返回 null 命令
-  return parser ? parser(args) : { command: null };
-}
-
-/**
- * 显示帮助信息
- */
-function showHelp() {
-  console.log("\n使用方法：");
-  console.log("  node src/index.js search [目录] [关键词] [扩展名]");
-  console.log("  node src/index.js rename [目录] [模式] [参数] [--dry-run]");
-  console.log("\n搜索参数说明：");
-  console.log("  目录      - 要搜索的目录路径（默认：当前目录）");
-  console.log("  关键词    - 文件名包含的关键词（可选）");
-  console.log("  扩展名    - 文件扩展名过滤，如 .js .txt（可选）");
-  console.log("\n重命名参数说明：");
-  console.log("  目录      - 要处理的目录路径");
-  console.log("  模式      - prefix | suffix | replace | number");
-  console.log("  参数      - 根据模式不同：");
-  console.log("              prefix:  前缀文本");
-  console.log("              suffix:  后缀文本");
-  console.log("              replace: 旧文本 新文本");
-  console.log("              number:  起始数字");
-  console.log("  --dry-run - 预览模式，不实际修改文件");
-  console.log("\n搜索示例：");
-  console.log("  node src/index.js search ./ index");
-  console.log("  node src/index.js search ./src .js");
-  console.log("\n重命名示例：");
-  console.log("  node src/index.js rename ./test prefix test_");
-  console.log("  node src/index.js rename ./test suffix _backup");
-  console.log("  node src/index.js rename ./test replace old new");
-  console.log("  node src/index.js rename ./test number 1 --dry-run");
-  console.log("");
-}
+const {
+  promptMainMenu,
+  promptSearchParams,
+  promptRenameParams,
+} = require("./prompts");
 
 /**
  * 搜索命令处理器
@@ -157,26 +64,61 @@ const commandHandlers = {
 };
 
 /**
- * 主入口函数
+ * 提示函数映射对象
+ * 将命令名称映射到对应的参数提示函数
+ */
+const promptHandlers = {
+  search: promptSearchParams,
+  rename: promptRenameParams,
+};
+
+/**
+ * 主入口函数 - 交互式界面
  */
 async function main() {
-  const parsedArgs = parseArguments();
-  const { command } = parsedArgs;
+  console.log("\n欢迎使用文件管理工具！");
+  console.log("=".repeat(50));
 
-  // 获取命令处理器
-  const handler = commandHandlers[command];
+  while (true) {
+    // 显示主菜单
+    const action = await promptMainMenu();
 
-  // 如果命令不存在，显示帮助信息
-  if (!handler) {
-    showHelp();
-    return;
-  }
+    // 处理退出
+    if (action === "exit") {
+      console.log("\n👋 再见！");
+      break;
+    }
 
-  // 执行命令处理器
-  try {
-    await handler(parsedArgs);
-  } catch (error) {
-    console.error(`❌ ${command} 过程中出错:`, error.message);
+    // 获取参数提示函数
+    const promptHandler = promptHandlers[action];
+    const parsedArgs = await promptHandler();
+
+    // 获取命令处理器
+    const handler = commandHandlers[action];
+
+    // 执行命令
+    try {
+      await handler(parsedArgs);
+    } catch (error) {
+      console.error(`\n❌ ${action} 过程中出错:`, error.message);
+    }
+
+    // 询问是否继续
+    const { continueWork } = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "continueWork",
+        message: "\n是否继续使用？",
+        default: true,
+      },
+    ]);
+
+    if (!continueWork) {
+      console.log("\n👋 再见！");
+      break;
+    }
+
+    console.log("\n" + "=".repeat(50));
   }
 }
 
